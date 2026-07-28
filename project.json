@@ -4,7 +4,8 @@
     "value": {
         "author": "John Doe",
         "description": "Coding tutorials for wookies",
-        "clangd": true
+        "clangd": true,
+        "language": "c"
     },
     "lang.c": {
       "c-standard": "c23",

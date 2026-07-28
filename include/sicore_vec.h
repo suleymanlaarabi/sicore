@@ -1,7 +1,8 @@
-#if SICORE_HAS_VEC
 #ifndef SICORE_VEC_H
 #define SICORE_VEC_H
 #include "sicore.h"
+
+#if SICORE_HAS_VEC
 #include <stdbool.h>
 #include <stdint.h>
 
