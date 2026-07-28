@@ -1,7 +1,6 @@
 #include "sicore.h"
 
 #if SICORE_HAS_MAP
-#include "sicore_map.h"
 #include <stdlib.h>
 #include <string.h>
 

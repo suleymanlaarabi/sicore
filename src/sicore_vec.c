@@ -1,7 +1,6 @@
 #include "sicore.h"
 
 #if SICORE_HAS_VEC
-#include "sicore_vec.h"
 #include <stdlib.h>
 #include <string.h>
 
