@@ -1,0 +1,9 @@
+{
+    "id": "sicore",
+    "type": "package",
+    "value": {
+        "author": "John Doe",
+        "description": "Coding tutorials for wookies",
+        "clangd": true
+    }
+}
