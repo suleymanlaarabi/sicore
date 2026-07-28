@@ -13,33 +13,39 @@
 #error "SICORE_MAP and SICORE_NO_MAP cannot be defined together"
 #endif
 
-#ifdef SIECS_CUSTOM_BUILD
+#if defined(SICORE_VEC)
 
-#ifdef SICORE_VEC
 #define SICORE_HAS_VEC 1
-#else
+
+#elif defined(SICORE_NO_VEC)
+
 #define SICORE_HAS_VEC 0
-#endif
 
-#ifdef SICORE_MAP
-#define SICORE_HAS_MAP 1
-#else
-#define SICORE_HAS_MAP 0
-#endif
+#elif defined(SICORE_CUSTOM_BUILD)
 
-#else
-
-#ifdef SICORE_NO_VEC
 #define SICORE_HAS_VEC 0
+
 #else
+
 #define SICORE_HAS_VEC 1
+
 #endif
 
-#ifdef SICORE_NO_MAP
-#define SICORE_HAS_MAP 0
-#else
+#if defined(SICORE_MAP)
+
 #define SICORE_HAS_MAP 1
-#endif
+
+#elif defined(SICORE_NO_MAP)
+
+#define SICORE_HAS_MAP 0
+
+#elif defined(SICORE_CUSTOM_BUILD)
+
+#define SICORE_HAS_MAP 0
+
+#else
+
+#define SICORE_HAS_MAP 1
 
 #endif
 

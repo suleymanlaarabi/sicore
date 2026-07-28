@@ -5,5 +5,11 @@
         "author": "John Doe",
         "description": "Coding tutorials for wookies",
         "clangd": true
+    },
+    "lang.c": {
+      "c-standard": "c23",
+      "export-symbols": true,
+      "include": ["src"],
+      "cflags": ["-DSICORE_VEC"]
     }
 }
