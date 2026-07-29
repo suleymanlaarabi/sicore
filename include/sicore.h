@@ -136,6 +136,7 @@ void sicore_vec_remove_fast(sicore_vec_t *vec, uint32_t index, const uint32_t el
 #endif
 
 #if SICORE_HAS_MAP
+
 typedef struct {
     uint8_t *ctrl;
     void *entries;
@@ -152,6 +153,7 @@ uint32_t sicore_map_get(const sicore_map_t *map, const char *key);
 
 bool sicore_map_has(const sicore_map_t *map, const char *key);
 void sicore_map_set(sicore_map_t *map, const char *key, uint32_t value);
+bool sicore_map_unset(sicore_map_t *map, const char *key);
 #endif
 
 #ifdef __cplusplus

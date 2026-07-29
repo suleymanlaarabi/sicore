@@ -19,6 +19,7 @@
 #define SICORE_GROUP_WIDTH 16u
 #define SICORE_INITIAL_CAPACITY 16u
 #define SICORE_CTRL_EMPTY UINT8_C(0x80)
+#define SICORE_CTRL_DELETED UINT8_C(0xfe)
 
 /* 16 octets sur ABI 64 bits: 1/4 de ligne de cache de 64 octets. */
 typedef struct {
@@ -324,13 +325,42 @@ SICORE_HOT bool sicore_map_has(const sicore_map_t *map, const char *key) {
     return sicore_find_index(map, key, key_length, hash) != UINT32_MAX;
 }
 
+static void sicore_rehash(sicore_map_t *map, uint32_t new_capacity) {
+    sicore_map_t rebuilt;
+    const uint32_t old_capacity = map->capacity;
+    uint8_t *const old_ctrl = map->ctrl;
+    sicore_map_entry_t *const old_entries = (sicore_map_entry_t *)map->entries;
+
+    sicore_allocate(&rebuilt, new_capacity);
+
+    for (uint32_t i = 0; i < old_capacity; ++i) {
+        if (old_ctrl[i] < SICORE_CTRL_EMPTY) {
+            const char *const key = old_entries[i].key;
+
+            sicore_insert_absent_hashed(
+                &rebuilt,
+                key,
+                old_entries[i].value,
+                old_entries[i].key_length,
+                sicore_hash_bytes((const uint8_t *)key, old_entries[i].key_length)
+            );
+        }
+    }
+
+    free(old_ctrl);
+    *map = rebuilt;
+}
+
 SICORE_HOT void sicore_map_set(sicore_map_t *map, const char *key, uint32_t value) {
     sicore_map_entry_t *entries = (sicore_map_entry_t *)map->entries;
+
     uint32_t key_length;
     const uint64_t hash = sicore_hash_string(key, &key_length);
     const uint8_t h2 = sicore_hash_h2(hash);
+
     uint32_t group = sicore_hash_group(hash, map->group_mask);
     uint32_t probe = 0;
+    uint32_t first_deleted = UINT32_MAX;
 
     for (;;) {
         const uint32_t base = group * SICORE_GROUP_WIDTH;
@@ -346,31 +376,80 @@ SICORE_HOT void sicore_map_set(sicore_map_t *map, const char *key, uint32_t valu
                 entries[index].value = value;
                 return;
             }
+
             candidates &= candidates - 1u;
         }
 
-        {
-            const uint32_t empties = sicore_match_byte(map->ctrl + base, SICORE_CTRL_EMPTY);
-            if (empties != 0) {
-                if (SICORE_UNLIKELY(map->growth_left == 0)) {
-                    sicore_grow(map);
-                    sicore_insert_absent_hashed(map, key, value, key_length, hash);
-                    return;
-                }
+        if (first_deleted == UINT32_MAX) {
+            const uint32_t deleted = sicore_match_byte(map->ctrl + base, SICORE_CTRL_DELETED);
 
-                const uint32_t index = base + sicore_ctz32(empties);
-                entries[index].key = key;
-                entries[index].value = value;
-                entries[index].key_length = key_length;
-                map->ctrl[index] = h2;
+            if (deleted != 0) {
+                first_deleted = base + sicore_ctz32(deleted);
+            }
+        }
+
+        const uint32_t empties = sicore_match_byte(map->ctrl + base, SICORE_CTRL_EMPTY);
+
+        if (empties != 0) {
+            if (first_deleted != UINT32_MAX) {
+                entries[first_deleted].key = key;
+                entries[first_deleted].value = value;
+                entries[first_deleted].key_length = key_length;
+
+                map->ctrl[first_deleted] = h2;
                 ++map->size;
-                --map->growth_left;
                 return;
             }
+
+            if (SICORE_UNLIKELY(map->growth_left == 0)) {
+                const uint32_t max_load = sicore_max_load(map->capacity);
+
+                sicore_rehash(map, map->size < max_load ? map->capacity : map->capacity << 1);
+
+                sicore_insert_absent_hashed(map, key, value, key_length, hash);
+
+                return;
+            }
+
+            const uint32_t index = base + sicore_ctz32(empties);
+
+            entries[index].key = key;
+            entries[index].value = value;
+            entries[index].key_length = key_length;
+
+            map->ctrl[index] = h2;
+            ++map->size;
+            --map->growth_left;
+            return;
         }
 
         ++probe;
         group = (group + probe) & map->group_mask;
     }
 }
+
+SICORE_HOT bool sicore_map_unset(sicore_map_t *map, const char *key) {
+    uint32_t key_length;
+    const uint64_t hash = sicore_hash_string(key, &key_length);
+
+    const uint32_t index = sicore_find_index(map, key, key_length, hash);
+
+    if (index == UINT32_MAX) {
+        return false;
+    }
+
+    const uint32_t base = index & ~(SICORE_GROUP_WIDTH - 1u);
+
+    --map->size;
+
+    if (sicore_match_byte(map->ctrl + base, SICORE_CTRL_EMPTY) != 0) {
+        map->ctrl[index] = SICORE_CTRL_EMPTY;
+        ++map->growth_left;
+    } else {
+        map->ctrl[index] = SICORE_CTRL_DELETED;
+    }
+
+    return true;
+}
+
 #endif
