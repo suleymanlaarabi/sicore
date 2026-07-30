@@ -250,31 +250,6 @@ static inline void sicore_insert_absent_hashed(
     }
 }
 
-static void sicore_grow(sicore_map_t *map) {
-    sicore_map_t grown;
-    const uint32_t old_capacity = map->capacity;
-    uint8_t *const old_ctrl = map->ctrl;
-    sicore_map_entry_t *const old_entries = (sicore_map_entry_t *)map->entries;
-
-    sicore_allocate(&grown, old_capacity << 1);
-
-    for (uint32_t i = 0; i < old_capacity; ++i) {
-        if (old_ctrl[i] < SICORE_CTRL_EMPTY) {
-            const char *const key = old_entries[i].key;
-            sicore_insert_absent_hashed(
-                &grown,
-                key,
-                old_entries[i].value,
-                old_entries[i].key_length,
-                sicore_hash_bytes((const uint8_t *)key, old_entries[i].key_length)
-            );
-        }
-    }
-
-    free(old_ctrl);
-    *map = grown;
-}
-
 static inline uint32_t
 sicore_find_index(const sicore_map_t *map, const char *key, uint32_t key_length, uint64_t hash) {
     const sicore_map_entry_t *const entries = (const sicore_map_entry_t *)map->entries;
