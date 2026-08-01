@@ -72,7 +72,11 @@ static inline uint64_t sicore_read64(const uint8_t *p) {
     uint64_t v;
     memcpy(&v, p, sizeof(v));
 #if defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+#if defined(_MSC_VER)
+    v = _byteswap_uint64(v);
+#else
     v = __builtin_bswap64(v);
+#endif
 #endif
     return v;
 }
@@ -81,7 +85,11 @@ static inline uint64_t sicore_read32(const uint8_t *p) {
     uint32_t v;
     memcpy(&v, p, sizeof(v));
 #if defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+#if defined(_MSC_VER)
+    v = _byteswap_ulong((unsigned long)v);
+#else
     v = __builtin_bswap32(v);
+#endif
 #endif
     return v;
 }
