@@ -1,16 +1,21 @@
 {
-    "id": "sicore",
-    "type": "package",
-    "value": {
-        "author": "John Doe",
-        "description": "Coding tutorials for wookies",
-        "clangd": true,
-        "language": "c"
-    },
-    "lang.c": {
-      "c-standard": "c23",
-      "export-symbols": true,
-      "include": ["src"],
-      "cflags": ["-DSICORE_VEC"]
+  "id": "sicore",
+  "type": "package",
+  "value": {
+    "author": "John Doe",
+    "description": "Coding tutorials for wookies",
+    "clangd": true,
+    "language": "c"
+  },
+  "lang.c": {
+    "c-standard": "c23",
+    "export-symbols": true,
+    "include": ["src"],
+    "cflags": ["-DSICORE_VEC"],
+    "${os windows}": {
+      "c-standard": "c11",
+      "symbols": false,
+      "cflags": ["/FS"]
     }
+  }
 }
