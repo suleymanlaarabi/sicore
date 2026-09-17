@@ -8,7 +8,7 @@
         "language": "c"
     },
     "lang.c": {
-      "c-standard": "c23",
+      "c-standard": "c17",
       "export-symbols": true,
       "include": ["src"],
       "cflags": ["-DSICORE_VEC"]
