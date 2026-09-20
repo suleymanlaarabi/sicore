@@ -1,9 +1,16 @@
 #ifndef SICORE_H
 #define SICORE_H
 
+#if defined(_MSC_VER)
+#include <intrin.h>
+#define SICORE_LIKELY(x) (x)
+#define SICORE_UNLIKELY(x) (x)
+#define SICORE_HOT
+#else
 #define SICORE_LIKELY(x) __builtin_expect(!!(x), 1)
 #define SICORE_UNLIKELY(x) __builtin_expect(!!(x), 0)
 #define SICORE_HOT __attribute__((hot))
+#endif
 
 #if defined(SICORE_VEC) && defined(SICORE_NO_VEC)
 #error "SICORE_VEC and SICORE_NO_VEC cannot be defined together"
