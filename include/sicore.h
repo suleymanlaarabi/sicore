@@ -57,7 +57,7 @@
 #endif
 
 /* This generated file contains includes for project dependencies */
-#include "sicore/bake_config.h"
+#include <sicore/export.h>
 
 #if SICORE_HAS_VEC || SICORE_HAS_MAP
 #include <stdbool.h>
